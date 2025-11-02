@@ -70,6 +70,30 @@ RSpec.describe SSG::Gacha::Engine do
       results = engine.draw_multiple(5)
       expect(results).to all(be_a(GachaCard))
     end
+
+    it "supports 10-draw gacha" do
+      engine = described_class.new(cards_relation)
+      results = engine.draw_multiple(10)
+      expect(results.size).to eq(10)
+      expect(results).to all(be_a(GachaCard))
+    end
+
+    it "raises error with zero count" do
+      engine = described_class.new(cards_relation)
+      expect { engine.draw_multiple(0) }.to raise_error(ArgumentError, "Draw count must be positive")
+    end
+
+    it "raises error with negative count" do
+      engine = described_class.new(cards_relation)
+      expect { engine.draw_multiple(-5) }.to raise_error(ArgumentError, "Draw count must be positive")
+    end
+
+    it "supports single draw via draw_multiple" do
+      engine = described_class.new(cards_relation)
+      results = engine.draw_multiple(1)
+      expect(results.size).to eq(1)
+      expect(results.first).to be_a(GachaCard)
+    end
   end
 
   describe "#probabilities" do
