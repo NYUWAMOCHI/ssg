@@ -31,7 +31,14 @@ module SSG
         @cards.last
       end
 
+      # Draw multiple cards in a single operation (e.g., 10-draw gacha).
+      #
+      # @param count [Integer] Number of cards to draw
+      # @return [Array<Object>] Array of drawn cards
+      # @raise [ArgumentError] If count is not positive
       def draw_multiple(count)
+        raise ArgumentError, "Draw count must be positive" unless count.positive?
+
         Array.new(count) { draw }
       end
 
