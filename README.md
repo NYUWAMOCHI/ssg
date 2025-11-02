@@ -1,46 +1,55 @@
-# SSG
+# SSG (Social game Support Gem)
 
-TODO: Delete this and the text below, and describe your gem
+Ruby on Railsアプリケーション向けのソーシャルゲーム機能を提供するgemです。
+重み付き確率に基づくガチャ機能を実装しており、メモリ効率を考慮した設計になっています。
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/ssg`. To experiment with that code, run `bin/console` for an interactive prompt.
+## 機能
 
-## Installation
+- 🎲 重み付きガチャ機能
+- 📊 確率計算機能
+- 🔄 単発・複数回ガチャ対応（10連ガチャ等）
+- 💾 メモリ効率的な実装
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+## インストール
 
-Install the gem and add to the application's Gemfile by executing:
+Gemfileに以下を追加：
 
-```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+```ruby
+gem 'ssg'
 ```
 
-If bundler is not being used to manage dependencies, install the gem by executing:
+その後、以下を実行：
 
 ```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+bundle install
 ```
 
-## Usage
+## 要件
+
+- Ruby 3.1.0以上
+- Rails 6.0以上
+- ActiveRecord
+- ActiveSupport
+
+## 使用方法
 
 ### 基本的な使用方法
 
 ```ruby
-# カードデータの準備
-cards = [
-  GachaCard.new(id: 1, name: "コモン", rarity: "common", weight: 70),
-  GachaCard.new(id: 2, name: "レア", rarity: "rare", weight: 25),
-  GachaCard.new(id: 3, name: "SR", rarity: "super_rare", weight: 4),
-  GachaCard.new(id: 4, name: "UR", rarity: "ultra_rare", weight: 1)
-]
+require 'ssg'
+
+# カードマスタデータ（ActiveRecordモデル）から抽選
+cards = GachaCard.all
 
 # エンジンの初期化
 engine = SSG::Gacha::Engine.new(cards)
 
 # 単発抽選
-result = engine.draw
-puts result.name # => "コモン" など
+card = engine.draw
+puts card.name    # => "コモン" など
+puts card.rarity  # => "common"
 
-# 複数回抽選
+# 複数回抽選（10連ガチャ）
 results = engine.draw_multiple(10)
 puts results.size # => 10
 
@@ -49,53 +58,240 @@ probabilities = engine.probabilities
 # => {1=>70.0, 2=>25.0, 3=>4.0, 4=>1.0}
 ```
 
-### 確率計算のメモリ効率について
-
-`probabilities` メソッドは、実際に存在するカードのIDだけをハッシュに保存します。IDが飛び飛び（例: 1-100と1000-10000）の場合でも、間のIDのエントリは作成されません。
-
-**重要**: Rubyのハッシュは疎なデータ構造のため、存在しないキーは保存されません。メモリ消費は実際に存在するカード数に比例します。
-
-#### ⚠️ 配列を使った場合の問題（Railsでの実例）
-
-Rubyの配列では、未使用インデックスを指定して値を代入すると、インデックスまでの間のヒープが確保されてしまいます：
+### Railsアプリケーションでの例
 
 ```ruby
-arr = []
-arr[3] = 1
-puts arr.inspect # => [nil, nil, nil, 1]
-# インデックス0-2のnilもメモリに確保される
-```
+# app/models/gacha_card.rb
+class GachaCard < ApplicationRecord
+  validates :name, :rarity, :weight, presence: true
+  validates :weight, numericality: { greater_than: 0 }
 
-**ガチャでの実際の問題事例**:
-ガチャIDを配列のインデックスとして使用していた場合、IDが1-100と1000-10000のカードがあると、ID 101-999の間も`nil`としてメモリに確保されてしまい、巨大なヒープが作成されメモリを大量に消費していました。
+  enum rarity: {
+    common: 0,
+    rare: 1,
+    super_rare: 2,
+    ultra_rare: 3
+  }
+end
 
-```ruby
-# ❌ 配列を使った悪い例（メモリを大量に消費）
-def probabilities
-  result = []
-  @cards.each do |card|
-    result[card.id] = (card.weight.to_f / @total_weight * 100).round(2)
-    # ID 1と10000のカードがあると、インデックス1-10000までの巨大な配列が作成される
-    # （間のインデックスもnilとしてメモリに確保される）
+# app/controllers/gacha_controller.rb
+class GachaController < ApplicationController
+  def draw
+    engine = SSG::Gacha::Engine.new(GachaCard.all)
+    @result = engine.draw
+
+    # ユーザーにカードを付与する処理など
+    current_user.gacha_cards << @result
+
+    render json: @result.json_format
   end
-  result
+
+  def draw_multiple
+    count = params[:count].to_i.clamp(1, 10)  # 最大10連
+    engine = SSG::Gacha::Engine.new(GachaCard.all)
+    @results = engine.draw_multiple(count)
+
+    current_user.gacha_cards.push(*@results)
+
+    render json: {
+      cards: @results.map(&:json_format)
+    }
+  end
+
+  def probabilities
+    engine = SSG::Gacha::Engine.new(GachaCard.all)
+
+    render json: engine.probabilities
+  end
 end
 ```
 
-**解決策**: 連想配列（ハッシュ）を使用することで、存在しないIDのメモリ確保を回避できます。
+### ガチャカードモデルの例
 
+```ruby
+# db/migrate/20240101000000_create_gacha_cards.rb
+class CreateGachaCards < ActiveRecord::Migration[7.0]
+  def change
+    create_table :gacha_cards do |t|
+      t.string :name, null: false
+      t.string :rarity, null: false
+      t.integer :weight, null: false, default: 1
+      t.text :description
+      t.string :image_url
 
+      t.timestamps
+    end
 
-## Development
+    add_index :gacha_cards, :rarity
+    add_index :gacha_cards, :weight
+  end
+end
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+# db/seeds.rb
+GachaCard.create!([
+  { name: "コモンカード", rarity: :common, weight: 70 },
+  { name: "レアカード", rarity: :rare, weight: 25 },
+  { name: "スーパーレアカード", rarity: :super_rare, weight: 4 },
+  { name: "ウルトラレアカード", rarity: :ultra_rare, weight: 1 }
+])
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+## 重み付き抽選アルゴリズム
 
-## Contributing
+このgemは累積重み方式を使用して、効率的にカードを抽選します。
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/ssg.
+### アルゴリズムの説明
 
-## License
+1. 全カードの重みを合計（total_weight）
+2. 0〜total_weightの範囲でランダム値を生成
+3. 累積重みを計算しながら、ランダム値が該当する範囲のカードを選択
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+### 例
+
+```
+カードA: 重み70 (累積: 0-69)
+カードB: 重み25 (累積: 70-94)
+カードC: 重み4  (累積: 95-98)
+カードD: 重み1  (累積: 99)
+合計: 100
+
+ランダム値75 → カードBを選択
+```
+
+## APIリファレンス
+
+### SSG::Gacha::Engine
+
+#### `initialize(card_relation)`
+
+ActiveRecord::Relationを受け取ります。
+
+```ruby
+engine = SSG::Gacha::Engine.new(GachaCard.all)
+```
+
+#### `draw`
+
+単発ガチャを実行し、カードを返します。
+
+```ruby
+card = engine.draw
+```
+
+#### `draw_multiple(count)`
+
+複数回ガチャを実行します。countは正の整数である必要があります。
+
+```ruby
+cards = engine.draw_multiple(10)  # 10連ガチャ
+```
+
+#### `probabilities`
+
+各カードの確率（パーセント）をハッシュで返します。
+
+```ruby
+probs = engine.probabilities
+# => {1=>70.0, 2=>25.0, 3=>4.0, 4=>1.0}
+```
+
+### SSG::Gacha::Result
+
+ガチャ結果をラップするクラスです。
+
+#### `card`
+
+抽選されたカードオブジェクトを返します（読み取り専用）。
+
+#### `name`
+
+カード名を返します。
+
+#### `rarity`
+
+カードのレア度を返します。
+
+#### `json_format`
+
+カード情報をハッシュで返します（JSON化用）。
+
+```ruby
+result = engine.draw
+result.json_format
+# => { card_id: 1, name: "コモン", rarity: "common" }
+```
+
+## メモリ効率について
+
+このgemの`probabilities`メソッドはハッシュを使用しており、実際に存在するカードのIDだけを保存します。
+IDが飛び飛びの場合（例: 1-100と1000-10000）でも、間のIDのエントリは作成されません。
+
+⚠️ **配列を使った場合の問題**
+
+```ruby
+# ❌ 配列を使った実装（メモリを大量に消費）
+arr = []
+arr[1000] = "value"
+# インデックス0-999もメモリに確保される
+```
+
+このgemはハッシュを使用することでこの問題を回避しています。
+
+## 開発
+
+リポジトリをクローンした後：
+
+```bash
+bundle install
+```
+
+テストを実行：
+
+```bash
+bundle exec rspec
+```
+
+コード品質をチェック：
+
+```bash
+bundle exec rubocop
+```
+
+対話的なプロンプトで実験：
+
+```bash
+bin/console
+```
+
+gemをローカルにインストール：
+
+```bash
+bundle exec rake install
+```
+
+## テスト
+
+このgemは包括的なテストスイートを含みます。
+
+```bash
+# 全テスト実行
+bundle exec rake
+
+# RSpecのみ実行
+bundle exec rspec
+
+# RuboCopのみ実行
+bundle exec rubocop
+```
+
+## 貢献
+
+バグレポートやプルリクエストはGitHubで歓迎します。
+
+https://github.com/NYUWAMOCHI/ssg
+
+## ライセンス
+
+このgemは[MIT License](https://opensource.org/licenses/MIT)の下でオープンソースとして利用可能です。
+
+詳細は[LICENSE.txt](LICENSE.txt)を参照してください。
