@@ -1,11 +1,21 @@
 # frozen_string_literal: true
 
-RSpec.describe Ssg do
+RSpec.describe SSG do
   it "has a version number" do
-    expect(Ssg::VERSION).not_to be nil
+    expect(SSG::VERSION).not_to be_nil
   end
 
-  it "does something useful" do
-    expect(false).to eq(true)
+  describe "modules" do
+    it "has Gacha module" do
+      expect(defined?(SSG::Gacha)).to be_truthy
+    end
+
+    it "has Engine class" do
+      expect(defined?(SSG::Gacha::Engine)).to be_truthy
+    end
+
+    it "has Result class" do
+      expect(defined?(SSG::Gacha::Result)).to be_truthy
+    end
   end
 end

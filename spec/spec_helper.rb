@@ -1,6 +1,12 @@
 # frozen_string_literal: true
 
 require "ssg"
+require "active_record"
+require "active_support"
+require "active_support/core_ext/time"
+
+# Load test support files
+require_relative "support/test_models"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -11,5 +17,10 @@ RSpec.configure do |config|
 
   config.expect_with :rspec do |c|
     c.syntax = :expect
+  end
+
+  # Reset test state before each test
+  config.before(:each) do
+    GachaCardRelation.delete_all
   end
 end
