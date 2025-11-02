@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe SSG::Gacha::Result do
+RSpec.describe SGK::Gacha::Result do
   let(:card) { GachaCard.new(id: 1, name: "Test Card", rarity: "rare", weight: 10) }
 
   describe "#initialize" do

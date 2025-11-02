@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "ssg"
+require "sgk"
 require "active_record"
 require "active_support"
 require "active_support/core_ext/time"

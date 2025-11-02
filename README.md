@@ -1,4 +1,4 @@
-# SSG (Social game Support Gem)
+# Social Game Kit
 
 Ruby on Railsアプリケーション向けのソーシャルゲーム機能を提供するgemです。
 重み付き確率に基づくガチャ機能を実装しており、メモリ効率を考慮した設計になっています。
@@ -14,7 +14,7 @@ Ruby on Railsアプリケーション向けのソーシャルゲーム機能を�
 Gemfileに以下を追加：
 
 ```ruby
-gem 'ssg'
+gem 'social-game-kit'
 ```
 
 その後、以下を実行：
@@ -287,7 +287,7 @@ bundle exec rubocop
 
 バグレポートやプルリクエストはGitHubで歓迎します。
 
-https://github.com/NYUWAMOCHI/ssg
+https://github.com/NYUWAMOCHI/social-game-kit
 
 ## ライセンス
 
