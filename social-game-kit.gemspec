@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-require_relative "lib/ssg/version"
+require_relative "lib/sgk/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "ssg"
-  spec.version = SSG::VERSION
+  spec.name = "social-game-kit"
+  spec.version = SGK::VERSION
   spec.authors = ["sugawara_nagisa"]
   spec.email = ["nyuwamochi@gmail.com"]
 
-  spec.summary = "Social game Support Gem for Ruby on Rails"
-  spec.description = "Rails専用のソシャゲ機能提供gem。ガチャ、ログインボーナスなど"
-  spec.homepage = "https://github.com/NYUWAMOCHI/ssg"
+  spec.summary = "Social Game Kit for Ruby on Rails"
+  spec.description = "Rails向けソーシャルゲーム機能kit。重み付きガチャエンジンなど"
+  spec.homepage = "https://github.com/NYUWAMOCHI/social-game-kit"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.1.0"
 

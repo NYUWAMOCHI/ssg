@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe SSG::Gacha::Engine do
+RSpec.describe SGK::Gacha::Engine do
   let(:common_card) { GachaCard.new(id: 1, name: "Common", rarity: "common", weight: 70) }
   let(:rare_card) { GachaCard.new(id: 2, name: "Rare", rarity: "rare", weight: 25) }
   let(:sr_card) { GachaCard.new(id: 3, name: "SR", rarity: "super_rare", weight: 4) }

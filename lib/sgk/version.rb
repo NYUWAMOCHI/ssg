@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
-module SSG
+module SGK
   VERSION = "0.1.0"
 end

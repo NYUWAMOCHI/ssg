@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module SSG
+module SGK
   module Gacha
     # Represents the result of a gacha draw.
     #

@@ -2,7 +2,7 @@
 
 source "https://rubygems.org"
 
-# Specify your gem's dependencies in ssg.gemspec
+# Specify your gem's dependencies in social-game-kit.gemspec
 gemspec
 
 gem "irb"

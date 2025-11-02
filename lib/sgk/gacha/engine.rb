@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module SSG
+module SGK
   module Gacha
     # Gacha engine that implements weighted random card selection.
     #

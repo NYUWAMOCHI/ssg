@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    ssg (0.1.0)
+    social-game-kit (0.1.0)
       activerecord (>= 6.0)
       activesupport (>= 6.0)
 
@@ -117,7 +117,7 @@ DEPENDENCIES
   rake (~> 13.0)
   rspec (~> 3.0)
   rubocop (~> 1.21)
-  ssg!
+  social-game-kit!
 
 BUNDLED WITH
    2.6.8
