@@ -2,11 +2,8 @@
 
 module SGK
   module Gacha
-    # Represents the result of a gacha draw.
+    # ガチャ抽選の結果を表す。
     #
-    # This class wraps a card object and provides convenient accessors
-    # for common card properties. It can be serialized to a hash for
-    # logging or API responses.
     class Result
       attr_reader :card
 
@@ -22,9 +19,7 @@ module SGK
         @card.rarity
       end
 
-      # Convert the result to a hash for JSON serialization.
-      #
-      # @return [Hash] A hash containing card_id, name, and rarity
+      # JSON変換用メソッド
       def json_format
         {
           card_id: @card.id,

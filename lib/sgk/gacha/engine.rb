@@ -2,11 +2,7 @@
 
 module SGK
   module Gacha
-    # Gacha engine that implements weighted random card selection.
-    #
-    # This engine takes an ActiveRecord relation of cards and provides methods
-    # to draw cards based on their weights, supporting both single draws and
-    # multiple draws in one operation.
+    # 重み付きガチャエンジン
     class Engine
       def initialize(card_relation)
         @cards = card_relation.to_a
@@ -26,16 +22,14 @@ module SGK
         end
 
         # NOTE: 浮動小数点誤差を考慮して最後のカードを返す実装だが、重み付き抽選の特性上起こる可能性はほとんどない。
-        # Returns the last card as a fallback for floating-point precision errors,
-        # though this scenario is highly unlikely given the nature of weighted random selection.
         @cards.last
       end
 
-      # Draw multiple cards in a single operation (e.g., 10-draw gacha).
+      # 単一操作で複数のカードを抽選する（例：10連ガチャ）。
       #
-      # @param count [Integer] Number of cards to draw
-      # @return [Array<Object>] Array of drawn cards
-      # @raise [ArgumentError] If count is not positive
+      # @param count [Integer] 抽選するカードの枚数
+      # @return [Array<Object>] 抽選されたカードの配列
+      # @raise [ArgumentError] countが正の値でない場合
       def draw_multiple(count)
         raise ArgumentError, "Draw count must be positive" unless count.positive?
 
